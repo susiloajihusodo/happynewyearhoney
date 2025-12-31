@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Happy New Year 2026</title>
+    <audio autoplay loop>
+  <source src="music.mp3" type="audio/mpeg">
+</audio>
+    <style>
+      #intro {
+  position: fixed;
+  inset: 0;
+  background: black;
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: opacity 1.2s ease;
+}
+
+#intro video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+#intro.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#skipIntro {
+  position: absolute;
+  bottom: 30px;
+  right: 30px;
+  padding: 10px 18px;
+  border-radius: 20px;
+  border: none;
+  background: rgba(0,0,0,0.6);
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* Hide main content initially */
+body.loaded .content-wrapper,
+body.loaded canvas,
+body.loaded .decorations-container,
+body.loaded .corner,
+body.loaded .side-decoration {
+  opacity: 1;
+}
+
+.content-wrapper,
+canvas,
+.decorations-container,
+.corner,
+.side-decoration {
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: #000000; /* black background */
+        overflow: hidden;
+        font-family: 'Arial', sans-serif;
+      }
+
+      /* Fireworks canvas goes behind all decorations */
+      #fireworks-canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+        pointer-events: none;
+      }
+
+      .decorations-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      /* Balloon layer */
+      .balloon {
+        position: absolute;
+        width: 40px;
+        height: 50px;
+        background: radial-gradient(
+          circle at 70% 30%,
+          #fff 1px,
+          var(--balloon-color) 2px
+        );
+        border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+        /* CHANGED infinite → forwards so the animation will end, 
+           triggering 'animationend' to remove the balloon */
+        animation: float-balloon 15s ease-in-out forwards;
+        z-index: 2;
+        opacity: 0.7;
+      }
+
+      .balloon::before {
+        content: '';
+        position: absolute;
+        bottom: -12px;
+        left: 20px;
+        height: 15px;
+        width: 1px;
+        background: rgba(255, 255, 255, 0.6);
+        transform: rotate(-45deg);
+      }
+
+      /* Glowing stars */
+      .star {
+        position: fixed;
+        width: 4px;
+        height: 4px;
+        background: #fff;
+        border-radius: 50%;
+        animation: twinkle 2s ease-in-out infinite;
+        z-index: 3;
+        box-shadow:
+          0 0 10px #fff,
+          0 0 20px #fff,
+          0 0 30px #fff;
+      }
+
+      /* Ribbon layer - now with glow effect */
+      .ribbon {
+        position: absolute;
+        width: 150px;
+        height: 150px;
+        border: 15px solid rgba(255, 215, 0, 0.3);
+        border-radius: 50%;
+        animation: rotate 20s linear infinite;
+        z-index: 1;
+        box-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
+      }
+
+      /* Confetti */
+      .confetti {
+        position: fixed;
+        width: 10px;
+        height: 10px;
+        background-color: gold;
+        z-index: 3;
+        animation: confetti-fall linear forwards;
+      }
+
+      .content-wrapper {
+        position: relative;
+        z-index: 10;
+        width: 100%;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        pointer-events: none;
+        background: transparent;
+      }
+
+      .title {
+        font-size: 6rem;
+        font-weight: bold;
+        text-align: center;
+        background: linear-gradient(45deg, #ffd700, #ff6b6b, #00ffff, #ff69b4);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        animation: gradient 4s ease infinite;
+        text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        margin-bottom: 1rem;
+        z-index: 15;
+      }
+
+      .subtitle {
+        font-size: 1.5rem;
+        color: #fff;
+        opacity: 0.9;
+        text-align: center;
+        animation: pulse 2s ease-in-out infinite;
+        z-index: 15;
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+      }
+
+      /* Corner decorations with glow */
+      .corner {
+        position: fixed;
+        width: 120px;
+        height: 120px;
+        border: 5px solid rgba(255, 215, 0, 0.3);
+        z-index: 5;
+        animation: corner-shine 3s ease-in-out infinite;
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+      }
+
+      .corner-tl {
+        top: 20px;
+        left: 20px;
+        border-right: none;
+        border-bottom: none;
+      }
+      .corner-tr {
+        top: 20px;
+        right: 20px;
+        border-left: none;
+        border-bottom: none;
+      }
+      .corner-bl {
+        bottom: 20px;
+        left: 20px;
+        border-right: none;
+        border-top: none;
+      }
+      .corner-br {
+        bottom: 20px;
+        right: 20px;
+        border-left: none;
+        border-top: none;
+      }
+
+      .side-decoration {
+        position: fixed;
+        width: 50px;
+        height: 200px;
+        z-index: 5;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+        align-items: center;
+      }
+
+      .side-decoration.left {
+        left: 30px;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+
+      .side-decoration.right {
+        right: 30px;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+
+      .decoration-item {
+        font-size: 2rem;
+        opacity: 0.8;
+        animation: float 3s ease-in-out infinite;
+        animation-delay: calc(var(--delay) * 0.5s);
+        filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+      }
+
+      /***************************
+       *    KEYFRAME ANIMATIONS  *
+       ***************************/
+
+      @keyframes gradient {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+
+      @keyframes pulse {
+        0%, 100% {
+          opacity: 0.9;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.7;
+          transform: scale(1.05);
+        }
+      }
+
+      @keyframes float {
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        50% { transform: translateY(-10px) rotate(5deg); }
+      }
+
+      @keyframes twinkle {
+        0%, 100% { opacity: 0.3; transform: scale(1); }
+        50% { opacity: 1; transform: scale(1.5); }
+      }
+
+      @keyframes float-balloon {
+        0% {
+          transform: translateY(120vh) rotate(0deg);
+          opacity: 0;
+        }
+        10% {
+          opacity: 0.7;
+        }
+        90% {
+          opacity: 0.7;
+        }
+        100% {
+          transform: translateY(-20vh) rotate(360deg);
+          opacity: 0;
+        }
+      }
+
+      @keyframes rotate {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      @keyframes corner-shine {
+        0%, 100% { border-color: rgba(255, 215, 0, 0.3); }
+        50% { border-color: rgba(255, 215, 0, 0.5); }
+      }
+
+      /* Confetti fall */
+      @keyframes confetti-fall {
+        0% {
+          transform: translateY(0) rotate(0deg);
+        }
+        100% {
+          transform: translateY(100vh) rotate(720deg);
+          opacity: 0;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .title {
+          font-size: 3rem;
+        }
+        .side-decoration {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+ <div id="intro">
+  <video id="introVideo" autoplay muted playsinline>
+    <source src="video.mp4" type="video/mp4" />
+  </video>
+  <button id="skipIntro">Skip</button>
+  </div>
+    <!-- Fireworks canvas behind everything -->
+    <canvas id="fireworks-canvas"></canvas>
+
+    <!-- Container for automatically added stars, balloons, ribbons, confetti -->
+    <div class="decorations-container"></div>
+
+    <!-- Main content in front -->
+    <div class="content-wrapper">
+      <h1 class="title">HAPPY NEW YEAR 2026</h1>
+      <p class="subtitle">Aku Selalu Sayang Nona!!!</p>
+    </div>
+
+    <!-- Corner decorations -->
+    <div class="corner corner-tl"></div>
+    <div class="corner corner-tr"></div>
+    <div class="corner corner-bl"></div>
+    <div class="corner corner-br"></div>
+
+    <!-- Side decorations -->
+    <div class="side-decoration left">
+      <span class="decoration-item" style="--delay: 0">✨</span>
+      <span class="decoration-item" style="--delay: 1">⭐</span>
+      <span class="decoration-item" style="--delay: 2">✨</span>
+    </div>
+
+    <div class="side-decoration right">
+      <span class="decoration-item" style="--delay: 2">✨</span>
+      <span class="decoration-item" style="--delay: 1">⭐</span>
+      <span class="decoration-item" style="--delay: 0">✨</span>
+    </div>
+
+    <!-- Script to handle fireworks (optional if you don't have fireworks.js) -->
+    <script src="fireworks.js"></script>
+
+    <script>
+      /**************************************************
+       *          DECORATION CREATION FUNCTIONS         *
+       **************************************************/
+
+      /* 1) Create random twinkling stars */
+      function createStars() {
+        const decorationsContainer = document.querySelector('.decorations-container');
+        for (let i = 0; i < 30; i++) {
+          const star = document.createElement('div');
+          star.className = 'star';
+          star.style.left = Math.random() * 100 + 'vw';
+          star.style.top = Math.random() * 100 + 'vh';
+          star.style.animationDelay = Math.random() * 2 + 's';
+          decorationsContainer.appendChild(star);
+        }
+      }
+
+      /* 2) Create balloons floating from bottom to top */
+      function createBalloons() {
+        const decorationsContainer = document.querySelector('.decorations-container');
+        const colors = ['#ff69b4', '#00ffff', '#ffd700', '#ff6b6b', '#7fffd4'];
+
+        const balloonCount = 4 + Math.floor(Math.random() * 2);
+
+        for (let i = 0; i < balloonCount; i++) {
+          const balloon = document.createElement('div');
+          balloon.className = 'balloon';
+          balloon.style.setProperty('--balloon-color',
+            colors[Math.floor(Math.random() * colors.length)]
+          );
+          balloon.style.left = (Math.random() * 80 + 10) + 'vw';
+          balloon.style.animationDelay = Math.random() * 5 + 's';
+          decorationsContainer.appendChild(balloon);
+
+          // Remove balloon after its animation finishes
+          balloon.addEventListener('animationend', () => {
+            balloon.remove();
+          });
+        }
+      }
+
+      /* 3) Create glowing circular ribbons in corners (example positions) */
+      function createRibbons() {
+        const decorationsContainer = document.querySelector('.decorations-container');
+        const positions = [
+          { top: '10%', left: '10%' },
+          { bottom: '10%', right: '10%' }
+        ];
+        
+        positions.forEach(pos => {
+          const ribbon = document.createElement('div');
+          ribbon.className = 'ribbon';
+          Object.assign(ribbon.style, pos);
+          decorationsContainer.appendChild(ribbon);
+        });
+      }
+
+      /* 4) Create falling confetti */
+      function createConfetti() {
+        const decorationsContainer = document.querySelector('.decorations-container');
+        const confettiCount = 25; // adjust as you like
+        const colors = ['#ff6b6b', '#ffd700', '#4ecdc4', '#45b7d1', '#ff0'];
+
+        for (let i = 0; i < confettiCount; i++) {
+          const confetti = document.createElement('div');
+          confetti.className = 'confetti';
+
+          // Random position at top
+          confetti.style.left = Math.random() * 100 + 'vw';
+          confetti.style.top = '-20px';
+
+          // Random color from array
+          confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+
+          // Random size
+          const size = Math.random() * 6 + 5; // 5px ~ 11px
+          confetti.style.width = size + 'px';
+          confetti.style.height = size + 'px';
+
+          // Random duration (1s ~ 4s)
+          const duration = 1 + Math.random() * 3;
+          confetti.style.animationDuration = duration + 's';
+
+          decorationsContainer.appendChild(confetti);
+
+          // Remove confetti after animation ends
+          confetti.addEventListener('animationend', () => {
+            confetti.remove();
+          });
+        }
+      }
+
+      /**************************************************
+       *           INITIAL SETUP & REPEATING            *
+       **************************************************/
+
+      // Create some static/initial decorations right away
+      createStars();
+      // createBalloons();
+      createRibbons();
+      createConfetti();
+
+      // Optionally keep spawning new balloons/confetti every 10 seconds
+      setInterval(() => {
+        // createBalloons();
+        createConfetti();
+      }, 10000);
+    </script>
+    <script>
+  const intro = document.getElementById("intro");
+  const video = document.getElementById("introVideo");
+  const skip = document.getElementById("skipIntro");
+
+  function startSite() {
+    intro.classList.add("fade-out");
+    document.body.classList.add("loaded");
+
+    setTimeout(() => {
+      intro.remove();
+    }, 1200);
+  }
+
+  video.addEventListener("ended", startSite);
+  skip.addEventListener("click", startSite);
+</script>
+  </body>
+</html>
